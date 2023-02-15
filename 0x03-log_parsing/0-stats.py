@@ -1,55 +1,40 @@
+#!/usr/bin/python3
+"""Performs log parsing from stdin"""
+
+import re
 import sys
+counter = 0
+file_size = 0
+statusC_counter = {200: 0, 301: 0, 400: 0,
+                   401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
 
-# Initialize variables
-total_file_size = 0
-status_code_counts = {
-    200: 0,
-    301: 0,
-    400: 0,
-    401: 0,
-    403: 0,
-    404: 0,
-    405: 0,
-    500: 0
-}
 
-# Read input line by line
-try:
-    line_count = 0
-    for line in sys.stdin:
-        # Split line into components
-        parts = line.strip().split()
-        if len(parts) != 6:
-            # Line is not in expected format, skip it
-            continue
-        if parts[0].find('.') == -1:
-            # IP address is not valid, skip line
-            continue
-        if parts[2][0] != '"':
-            # Request is not in expected format, skip line
-            continue
-        if parts[3] not in status_code_counts:
-            # Status code is not an expected value, skip line
-            continue
-        if not parts[5].startswith('('):
-            # File size is not in expected format, skip line
-            continue
-        # Parse file size and status code
-        file_size = int(parts[5][1:-1])
-        status_code = int(parts[3])
-        # Update statistics
-        total_file_size += file_size
-        status_code_counts[status_code] += 1
-        line_count += 1
-        if line_count % 10 == 0:
-            # Print statistics after every 10 lines
-            print("Total file size: File size: %d" % total_file_size)
-            for status_code in sorted(status_code_counts.keys()):
-                if status_code_counts[status_code] > 0:
-                    print("%d: %d" % (status_code, status_code_counts[status_code]))
-except KeyboardInterrupt:
-    # Print final statistics on keyboard interruption
-    print("Total file size: File size: %d" % total_file_size)
-    for status_code in sorted(status_code_counts.keys()):
-        if status_code_counts[status_code] > 0:
-            print("%d: %d" % (status_code, status_code_counts[status_code]))
+def printCodes(dict, file_s):
+    """Prints the status code and the number of times they appear"""
+    print("File size: {}".format(file_s))
+    for key in sorted(dict.keys()):
+        if statusC_counter[key] != 0:
+            print("{}: {}".format(key, dict[key]))
+
+
+if __name__ == "__main__":
+    try:
+        for line in sys.stdin:
+            split_string = re.split('- |"|"| " " ', str(line))
+            statusC_and_file_s = split_string[-1]
+            if counter != 0 and counter % 10 == 0:
+                printCodes(statusC_counter, file_size)
+            counter = counter + 1
+            try:
+                statusC = int(statusC_and_file_s.split()[0])
+                f_size = int(statusC_and_file_s.split()[1])
+                # print("Status Code {} size {}".format(statusC, f_size))
+                if statusC in statusC_counter:
+                    statusC_counter[statusC] += 1
+                file_size = file_size + f_size
+            except:
+                pass
+        printCodes(statusC_counter, file_size)
+    except KeyboardInterrupt:
+        printCodes(statusC_counter, file_size)
+        raise
