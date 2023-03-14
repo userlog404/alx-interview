@@ -1,8 +1,13 @@
-#!/usr/bin/python3
-"""
-Test 0x07 - Rotate 2D Matrix
-"""
-rotate_2d_matrix = __import__('0-rotate_2d_matrix').rotate_2d_matrix
+from typing import List
+def rotate_2d_matrix(matrix: List[List[int]]) -> None:
+    n = len(matrix)
+    for i in range(n // 2):
+        for j in range(i, n - i - 1):
+            temp = matrix[i][j]
+            matrix[i][j] = matrix[n - j - 1][i]
+            matrix[n - j - 1][i] = matrix[n - i - 1][n - j - 1]
+            matrix[n - i - 1][n - j - 1] = matrix[j][n - i - 1]
+            matrix[j][n - i - 1] = temp
 
 if __name__ == "__main__":
     matrix = [[1, 2, 3],
